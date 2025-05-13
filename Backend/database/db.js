@@ -6,7 +6,7 @@ export const connectDB = async () => {
   const mongoURI = process.env.MONGODB_URI;
   mongoose
     .connect(mongoURI, {
-      dbName: "Swift_Event_Scheduler",
+      dbName: "SWIFT_EVENT_SCHEDULER",
     })
     .then(() => {
       console.log("MongoDB connected successfully");
