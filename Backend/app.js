@@ -7,7 +7,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRouter.js";
 import expressFileUpload from "express-fileupload";
-
+import removeUnverifiedAccounts from "./services/removeUnverifiedAccounts.js";
 dotenv.config();
 
 export const app = express();
@@ -34,6 +34,7 @@ app.use("/api/v1/user", userRouter);
 
 connectDB();
 app.use(errorMiddleware);
+removeUnverifiedAccounts();
 
 
 export default app;
