@@ -6,6 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import path from "path";
 import sendEmail from "../utilis/sendEmail.js";
 import { generateClubLeaderWelcomeEmailTemplate } from "../utilis/emailTemplates.js";
+import crypto from "crypto";
 
 // ✅ Get all verified users
 export const getAllUsers = catchAsyncErrors(async (req, res, next) => {
@@ -22,7 +23,9 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Admin avatar is required", 400));
   }
 
-  const { name, email, password } = req.body;
+  let { name, email, password } = req.body;
+  email = email.toLowerCase();
+
   if (!name || !email || !password) {
     return next(new ErrorHandler("Please enter all fields", 400));
   }
@@ -47,11 +50,12 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const normalizedPath = path.resolve(avatar.tempFilePath);
 
-  const cloudinaryResponse = await cloudinary.uploader.upload(normalizedPath, {
-    folder: "Swift_Event_Scheduler",
-  });
-
-  if (!cloudinaryResponse || cloudinaryResponse.error) {
+  let cloudinaryResponse;
+  try {
+    cloudinaryResponse = await cloudinary.uploader.upload(normalizedPath, {
+      folder: "Swift_Event_Scheduler",
+    });
+  } catch (err) {
     return next(new ErrorHandler("Error uploading image", 500));
   }
 
@@ -74,8 +78,10 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// ✅ Register Club Leader
 export const registerClubLeader = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password } = req.body;
+  let { name, email, password } = req.body;
+  email = email.toLowerCase();
 
   if (!name || !email || !password) {
     return next(new ErrorHandler("Please enter all fields", 400));
