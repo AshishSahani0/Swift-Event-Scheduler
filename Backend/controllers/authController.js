@@ -127,6 +127,14 @@ export const login = catchAsyncErrors(async (req, res, next) => {
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
+  if(user.role === "club_leader" && !user.passwordUpdated){
+    return res.status(403).json({
+      success: false,
+      message: "Please update your password before logging in",
+      requirePasswordUpdate: true,
+    })
+  }
+  
   sendToken(user, 200, "Login successful", res);
 });
 
@@ -226,16 +234,16 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findById(req.user._id).select("+password");
 
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
   if (!currentPassword || !newPassword || !confirmNewPassword) {
     return next(new ErrorHandler("Please enter all fields", 400));
   }
-  const isPasswordMatched = await bcrypt.compare(
-    currentPassword,
-    user.password
-  );
+
+  const isPasswordMatched = await bcrypt.compare(currentPassword, user.password);
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Current password is incorrect", 400));
   }
+
   if (
     newPassword.length < 8 ||
     newPassword.length > 16 ||
@@ -246,19 +254,23 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Password must be between 8 and 16 characters long", 400)
     );
   }
+
   if (newPassword !== confirmNewPassword) {
     return next(
-      new ErrorHandler(
-        "New Password and Confirm New Password does not match",
-        400
-      )
+      new ErrorHandler("New Password and Confirm New Password do not match", 400)
     );
   }
+
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
+
+  // ✅ Mark password as updated (for club leaders)
+  user.passwordUpdated = true;
+
   await user.save();
+
   res.status(200).json({
     success: true,
-    message: "Password saved successfully",
+    message: "Password updated successfully",
   });
 });
