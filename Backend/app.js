@@ -5,6 +5,8 @@ import authRouter from "./routes/authRouter.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import userRouter from "./routes/userRouter.js";
+import expressFileUpload from "express-fileupload";
 
 dotenv.config();
 
@@ -19,10 +21,16 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(
+  expressFileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
 
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/user", userRouter);
 
 connectDB();
 app.use(errorMiddleware);
