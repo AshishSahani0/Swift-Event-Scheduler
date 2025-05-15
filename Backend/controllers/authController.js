@@ -11,7 +11,9 @@ import { generateForgotPasswordEmailTemplate } from "../utilis/emailTemplates.js
 export const register = catchAsyncErrors(async (req, res, next) => {
   console.log("Incoming request to register:", req.body);
   try {
-    const { name, email, password } = req.body;
+    const { name, email: rawEmail, password } = req.body;
+    const email = rawEmail.trim().toLowerCase();
+
     if (!name || !email || !password) {
       return next(new ErrorHandler("All fields are required", 400));
     }
@@ -55,6 +57,7 @@ export const register = catchAsyncErrors(async (req, res, next) => {
 
 export const verifyOTP = catchAsyncErrors(async (req, res, next) => {
   const { email, OTP } = req.body;
+  
   if (!email || !OTP) {
     return next(new ErrorHandler("Email or OTP is missing", 400));
   }
@@ -83,7 +86,7 @@ export const verifyOTP = catchAsyncErrors(async (req, res, next) => {
     if (!user) {
       return next(new ErrorHandler("Error retrieving user data", 500));
     }
-    if (user.verificationCode != Number(OTP)) {
+    if (user.verificationCode !== Number(OTP)) {
       return next(new ErrorHandler("Invalid OTP", 400));
     }
 
@@ -264,8 +267,9 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
 
-  // ✅ Mark password as updated (for club leaders)
-  user.passwordUpdated = true;
+  if (user.role === "club_leader") {
+    user.passwordUpdated = true;
+  }
 
   await user.save();
 
