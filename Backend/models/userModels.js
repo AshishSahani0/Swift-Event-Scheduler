@@ -15,12 +15,15 @@ export const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      match: [/.+\@.+\..+/, "Please fill a valid email address"],
     },
 
     password: {
       type: String,
       required: true,
       select: false,
+      minlength: 8,
+      maxlength: 16,
     },
 
     role: {
@@ -31,7 +34,7 @@ export const userSchema = new mongoose.Schema(
     passwordUpdated: {
       type: Boolean,
       default: function () {
-        return this.role !== "club_leader"; // Only club leaders need to update password
+        return this.role !== "club_leader"; 
       },
     },
 
