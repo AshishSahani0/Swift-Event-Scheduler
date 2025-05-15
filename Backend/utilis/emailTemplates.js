@@ -173,5 +173,103 @@ export function generateForgotPasswordEmailTemplate(resetPassword) {
 `;
 }
 
+export function generateClubLeaderWelcomeEmailTemplate({ name, email, password }) {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Club Leader Account Created</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+    }
+    .header {
+      background-color: #4f46e5;
+      padding: 16px;
+      border-radius: 10px 10px 0 0;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    p {
+      font-size: 16px;
+      color: #333333;
+      line-height: 1.5;
+      margin: 12px 0;
+    }
+    .info-box {
+      background-color: #f9f9f9;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: left;
+    }
+    .info-box p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #4f46e5;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .footer {
+      font-size: 14px;
+      margin-top: 25px;
+      color: #555555;
+    }
+
+    @media only screen and (max-width: 480px) {
+      .container {
+        width: 90% !important;
+        padding: 15px !important;
+      }
+      .button {
+        width: 100% !important;
+        padding: 12px 0 !important;
+        font-size: 16px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Swift Event Scheduler</div>
+    <p>Hello <strong>${name}</strong>,</p>
+    <p>Your Club Leader account has been <strong>successfully created</strong> by an admin.</p>
+    <div class="info-box">
+      <p><strong>Login Email:</strong> ${email}</p>
+      <p><strong>Password:</strong> ${password}</p>
+    </div>
+    <p>For your security, please log in and <strong>update your password</strong> immediately.</p>
+    <a href="#" class="button">Update Password</a>
+    <div class="footer">
+      🎉 Welcome aboard! <br />
+      <strong>The Swift Event Scheduler Team</strong>
+    </div>
+  </div>
+</body>
+</html>
+`;
+}
 
 
