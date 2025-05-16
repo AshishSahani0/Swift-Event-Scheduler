@@ -8,6 +8,8 @@ import {
   forgotPassword,
   resetPassword,
   updatePassword,
+  resendOTP
+
 } from "../controllers/authController.js";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
 
@@ -21,4 +23,5 @@ authRouter.get("/me", isAuthenticated, getUser);
 authRouter.post("/password/forgot", forgotPassword);
 authRouter.put("/password/reset/:token", resetPassword);
 authRouter.put("/password/update", isAuthenticated, updatePassword);
+authRouter.post("/resend-otp", resendOTP);
 export default authRouter;
