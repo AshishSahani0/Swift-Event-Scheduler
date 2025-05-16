@@ -8,7 +8,7 @@ import sendEmail from "../utilis/sendEmail.js";
 import { generateClubLeaderWelcomeEmailTemplate } from "../utilis/emailTemplates.js";
 
 
-// ✅ Get all verified users
+//Get all verified users
 export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
   const users = await User.find({
     accountVerified: true,
@@ -20,7 +20,6 @@ export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
     users
   })
 })
-
 
 // Get all verified Club Leaders
 export const getAllClubLeaders = catchAsyncErrors(async (req, res, next) => {
@@ -36,6 +35,7 @@ export const getAllClubLeaders = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+//Get all verified admins
 export const getAllAdmins = catchAsyncErrors(async (req, res, next) => {
   const admins = await User.find({
     accountVerified: true,
@@ -48,7 +48,8 @@ export const getAllAdmins = catchAsyncErrors(async (req, res, next) => {
     admins,
   });
 });
-// ✅ Register New Admin
+
+// Register New Admin
 export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || Object.keys(req.files).length === 0) {
     return next(new ErrorHandler("Admin avatar is required", 400));
@@ -109,7 +110,7 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// ✅ Register Club Leader
+// Register Club Leader
 export const registerClubLeader = catchAsyncErrors(async (req, res, next) => {
   let { name, email, password } = req.body;
   email = email.toLowerCase();
@@ -163,3 +164,99 @@ export const registerClubLeader = catchAsyncErrors(async (req, res, next) => {
     message: "Club Leader registered successfully",
   });
 });
+
+// Update own profile (User or Club Leader)
+export const updateOwnProfile = catchAsyncErrors(async (req, res, next) => {
+  const { name, email, password } = req.body;
+
+  const user = await User.findById(req.user._id).select("+password");
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  if (name) user.name = name;
+  if (email) user.email = email;
+
+  if (password) {
+    if (password.length < 8 || password.length > 16) {
+      return next(new ErrorHandler("Password must be between 8-16 characters", 400));
+    }
+    user.password = await bcrypt.hash(password, 10);
+    user.passwordUpdated = true;
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    user: {
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
+});
+
+
+//update profile only by admin
+export const updateProfileByAdmin = catchAsyncErrors(async (req, res, next) => {
+  const {name, email, password} = req.body;
+  const user = await User.findById(req.params.id).select("+password");
+  if (!user) return next(new ErrorHandler("User not found", 404));
+  if(user.role === "admin"){
+    return next(new ErrorHandler("You cannot update admin profile", 400));
+  }
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (password) {
+    if (password.length < 8 || password.length > 16) {
+      return next(new ErrorHandler("Password must be between 8-16 characters", 400));
+    }
+    user.password = await bcrypt.hash(password, 10);
+    user.passwordUpdated = true;
+  }
+  await user.save();
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
+});
+
+//Delete user and clubleader only by admin
+export const deleteUserorClubLeader = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+
+  
+  if (req.user.role !== "admin") {
+    return next(new ErrorHandler("You are not authorized to delete", 403));
+  }
+
+  
+  const user = await User.findById(id);
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (user.role === "admin") {
+    return next(new ErrorHandler("You cannot delete another admin profile", 400));
+  }
+
+  if (user._id.equals(req.user._id)) {
+    return next(new ErrorHandler("You cannot delete your own account", 403));
+  }
+
+  
+  await user.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: `${user.role} deleted successfully`,
+  });
+});
+
+
