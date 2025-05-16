@@ -7,9 +7,11 @@ import { sendVerificationCode } from "../utilis/sendVerificationCode.js";
 import { sendToken } from "../utilis/sendToken.js";
 import sendEmail from "../utilis/sendEmail.js";
 import { generateForgotPasswordEmailTemplate } from "../utilis/emailTemplates.js";
+import { generateVerificationOtpEmailTemplate } from "../utilis/emailTemplates.js";
+import { generateVerificationSuccessEmailTemplate } from "../utilis/emailTemplates.js";
 
 export const register = catchAsyncErrors(async (req, res, next) => {
-  console.log("Incoming request to register:", req.body);
+ 
   try {
     const { name, email: rawEmail, password } = req.body;
     const email = rawEmail.trim().toLowerCase();
@@ -55,66 +57,48 @@ export const register = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-export const verifyOTP = catchAsyncErrors(async (req, res, next) => {
-  const { email, OTP } = req.body;
-  
-  if (!email || !OTP) {
-    return next(new ErrorHandler("Email or OTP is missing", 400));
+export const verifyOTP = catchAsyncErrors(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
   }
-  try {
-    const userAllEntries = await User.find({
-      email,
-      accountVerified: false,
-    }).sort({ createdAt: -1 });
 
-    if (userAllEntries.length === 0) {
-      return next(new ErrorHandler("User not found ", 404));
-    }
-
-    let user;
-    if (userAllEntries.length > 1) {
-      user = userAllEntries[0];
-      await User.deleteMany({
-        _id: { $ne: user._id },
-        email,
-        accountVerified: false,
-      });
-    } else {
-      user = userAllEntries[0];
-    }
-
-    if (!user) {
-      return next(new ErrorHandler("Error retrieving user data", 500));
-    }
-    if (user.verificationCode !== Number(OTP)) {
-      return next(new ErrorHandler("Invalid OTP", 400));
-    }
-
-    const currentTime = Date.now();
-    const verificationCodeExpire = new Date(
-      user.verificationCodeExpire
-    ).getTime();
-    if (currentTime > verificationCodeExpire) {
-      return next(new ErrorHandler("OTP expired", 400));
-    }
-    user.accountVerified = true;
-    user.verificationCode = null;
-    user.verificationCodeExpire = null;
-    await user.save({ validateModifiedOnly: true });
-
-    try {
-      sendToken(user, 200, "Account Verified", res);
-    } catch (tokenError) {
-      console.error("Error in sendToken:", tokenError);
-      return next(new ErrorHandler("Error generating token", 500));
-    }
-  } catch (error) {
-    return next(new ErrorHandler("Internal server error", 500));
+  if (user.accountVerified) {
+    return res.status(400).json({ success: false, message: "Account already verified" });
   }
+
+  if (
+    user.verificationCode !== Number(otp) ||
+    user.verificationCodeExpire < Date.now()
+  ) {
+    return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+  }
+
+  user.accountVerified = true;
+  user.verificationCode = undefined;
+  user.verificationCodeExpire = undefined;
+  await user.save();
+
+  // Send colorful, animated confirmation email
+  const message = generateVerificationSuccessEmailTemplate(user.name);
+  await sendEmail({
+    email: user.email,
+    subject: "🎉 Your Swift Event Scheduler Account Is Verified!",
+    message,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Account verified successfully",
+  });
 });
 
 export const login = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return next(new ErrorHandler("Please enter all fields", 400));
   }
@@ -130,14 +114,14 @@ export const login = catchAsyncErrors(async (req, res, next) => {
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
-  if(user.role === "club_leader" && !user.passwordUpdated){
+  if (user.role === "club_leader" && !user.passwordUpdated) {
     return res.status(403).json({
       success: false,
       message: "Please update your password before logging in",
       requirePasswordUpdate: true,
-    })
+    });
   }
-  
+
   sendToken(user, 200, "Login successful", res);
 });
 
@@ -242,7 +226,10 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Please enter all fields", 400));
   }
 
-  const isPasswordMatched = await bcrypt.compare(currentPassword, user.password);
+  const isPasswordMatched = await bcrypt.compare(
+    currentPassword,
+    user.password
+  );
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Current password is incorrect", 400));
   }
@@ -260,7 +247,10 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
 
   if (newPassword !== confirmNewPassword) {
     return next(
-      new ErrorHandler("New Password and Confirm New Password do not match", 400)
+      new ErrorHandler(
+        "New Password and Confirm New Password do not match",
+        400
+      )
     );
   }
 
@@ -278,3 +268,40 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
     message: "Password updated successfully",
   });
 });
+
+
+export const resendOTP = catchAsyncErrors(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  if (user.accountVerified) {
+    return res.status(400).json({ success: false, message: "Account already verified" });
+  }
+
+  const otp = user.generateVerificationCode();
+  await user.save();
+
+  const message = generateVerificationOtpEmailTemplate(otp);
+  await sendEmail({
+    email,
+    subject: "Verification Code - Swift Event Scheduler",
+    message,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Verification code resent successfully",
+  });
+});
+
+
+
