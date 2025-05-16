@@ -5,6 +5,9 @@ import {
   registerNewAdmin,
   registerClubLeader,
   getAllAdmins,
+  updateOwnProfile,
+  updateProfileByAdmin,
+  deleteUserorClubLeader,
 } from "../controllers/userController.js";
 
 import {
@@ -21,7 +24,6 @@ userRouter.get(
   isAuthorized("admin"),
   getAllUsers
 );
-
 
 // Route to get all club_leader (only accessible by admins)
 userRouter.get(
@@ -54,4 +56,27 @@ userRouter.post(
   registerClubLeader
 );
 
+// Route to update own profile
+userRouter.put(
+  "/update/profile",
+  isAuthenticated,
+  isAuthorized("admin", "user", "club_leader"),
+  updateOwnProfile
+);
+
+//Route to update profile by admins only
+userRouter.put(
+  "/update/profile/:id",
+  isAuthenticated,
+  isAuthorized("admin"),
+  updateProfileByAdmin
+);
+
+//Route to delete User or ClubLeader by Admin
+userRouter.delete(
+  "/delete/:id",
+  isAuthenticated,
+  isAuthorized("admin"),
+  deleteUserorClubLeader
+);
 export default userRouter;
