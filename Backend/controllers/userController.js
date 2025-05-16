@@ -6,7 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import path from "path";
 import sendEmail from "../utilis/sendEmail.js";
 import { generateClubLeaderWelcomeEmailTemplate } from "../utilis/emailTemplates.js";
-import crypto from "crypto";
+
 
 // ✅ Get all verified users
 export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
