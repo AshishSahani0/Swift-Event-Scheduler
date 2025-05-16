@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 
 export const userSchema = new mongoose.Schema(
   {
@@ -22,8 +23,7 @@ export const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       select: false,
-      minlength: 8,
-      maxlength: 16,
+      
     },
 
     role: {
@@ -58,6 +58,10 @@ export const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+
+
+
 
 userSchema.methods.generateVerificationCode = function () {
   const firstDigit = Math.floor(Math.random() * 9) + 1;
