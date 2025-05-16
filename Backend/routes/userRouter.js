@@ -1,8 +1,10 @@
 import express from "express";
 import {
   getAllUsers,
+  getAllClubLeaders,
   registerNewAdmin,
   registerClubLeader,
+  getAllAdmins,
 } from "../controllers/userController.js";
 
 import {
@@ -14,12 +16,28 @@ const userRouter = express.Router();
 
 // Route to get all users (only accessible by admins)
 userRouter.get(
-  "/all",
+  "/all-users",
   isAuthenticated,
   isAuthorized("admin"),
   getAllUsers
 );
 
+
+// Route to get all club_leader (only accessible by admins)
+userRouter.get(
+  "/all-club-leaders",
+  isAuthenticated,
+  isAuthorized("admin"),
+  getAllClubLeaders
+);
+
+// Route to get all admins (only accessible by admins)
+userRouter.get(
+  "/all-admins",
+  isAuthenticated,
+  isAuthorized("admin"),
+  getAllAdmins
+);
 // Route to register a new admin (only accessible by admins)
 userRouter.post(
   "/add/new-admin",
