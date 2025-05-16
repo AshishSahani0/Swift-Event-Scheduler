@@ -273,3 +273,106 @@ export function generateClubLeaderWelcomeEmailTemplate({ name, email, password }
 }
 
 
+export function generateVerificationSuccessEmailTemplate(name) {
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Account Verified</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+      body {
+        font-family: 'Poppins', Arial, sans-serif;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #1f1f1f;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        text-align: center;
+      }
+      h1 {
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+        animation: fadeInDown 1s ease forwards;
+      }
+      p {
+        font-size: 1.1rem;
+        margin: 20px 0 40px;
+        line-height: 1.5;
+        animation: fadeInUp 1s ease forwards;
+      }
+      .checkmark {
+        font-size: 4rem;
+        color: #4caf50;
+        animation: popIn 0.8s ease forwards;
+      }
+      .footer {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-top: 30px;
+      }
+      /* Animations */
+      @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        80% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); }
+      }
+      @keyframes fadeInDown {
+        0% { opacity: 0; transform: translateY(-20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeInUp {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .highlight {
+        background: linear-gradient(45deg, #ff6a00, #ee0979);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+      }
+      a.button {
+        display: inline-block;
+        padding: 12px 28px;
+        background: #2575fc;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 6px 15px rgba(37,117,252,0.6);
+        transition: background 0.3s ease;
+      }
+      a.button:hover {
+        background: #1b52c1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="checkmark">✅</div>
+      <h1>Hi ${name},</h1>
+      <p>Your account with <span class="highlight">Swift Event Scheduler</span> has been <strong>successfully verified!</strong></p>
+      <p>You're all set to join exciting events and manage your schedule like a pro.</p>
+      <a href="https://yourappdomain.com/login" class="button" target="_blank" rel="noopener noreferrer">
+        Go to Dashboard
+      </a>
+      <div class="footer">
+        <p>This is an automated message, please do not reply.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+}
+
+
+
