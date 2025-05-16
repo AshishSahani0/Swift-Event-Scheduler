@@ -15,3 +15,5 @@ export const removeUnverifiedAccounts = () => {
     }
   });
 };
+
+export default removeUnverifiedAccounts;
