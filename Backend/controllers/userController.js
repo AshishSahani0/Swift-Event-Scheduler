@@ -9,14 +9,45 @@ import { generateClubLeaderWelcomeEmailTemplate } from "../utilis/emailTemplates
 import crypto from "crypto";
 
 // ✅ Get all verified users
-export const getAllUsers = catchAsyncErrors(async (req, res, next) => {
-  const users = await User.find({ accountVerified: true });
+export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
+  const users = await User.find({
+    accountVerified: true,
+    role: "user"
+  });
   res.status(200).json({
     success: true,
-    users,
+    count: users.length,
+    users
+  })
+})
+
+
+// Get all verified Club Leaders
+export const getAllClubLeaders = catchAsyncErrors(async (req, res, next) => {
+  const clubLeaders = await User.find({
+    accountVerified: true,
+    role: 'club_leader',
+  });
+
+  res.status(200).json({
+    success: true,
+    count: clubLeaders.length,
+    clubLeaders,
   });
 });
 
+export const getAllAdmins = catchAsyncErrors(async (req, res, next) => {
+  const admins = await User.find({
+    accountVerified: true,
+    role: 'admin',
+  });
+
+  res.status(200).json({
+    success: true,
+    count: admins.length,
+    admins,
+  });
+});
 // ✅ Register New Admin
 export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || Object.keys(req.files).length === 0) {
